@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Document Q&A</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Investment Document Q&A</h1>
+            <p>Upload a document and ask questions about it</p>
+        </header>
+
+        <div class="upload-section">
+            <div class="upload-box" id="upload-box">
+                <input type="file" id="file-input" accept=".pdf" hidden>
+                <p>Click to upload a PDF</p>
+                <button onclick="document.getElementById('file-input').click()">Choose File</button>
+            </div>
+            <div id="upload-status"></div>
+        </div>
+
+        <div class="chat-section" id="chat-section" style="display:none">
+            <div id="chat-box"></div>
+            <div class="input-area">
+                <input type="text" id="question-input" placeholder="Ask a question about your document...">
+                <button onclick="sendQuestion()">Ask</button>
+            </div>
+        </div>
+    </div>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

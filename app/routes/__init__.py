@@ -1,12 +1,23 @@
-from app.services.rag import answer_question
+from fastapi import APIRouter, UploadFile, File, HTTPException, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
-from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.models import get_db
 from app.services.pdf_processor import extract_text_from_pdf, chunk_text
 from app.services.embeddings import embed_chunks
+from app.services.rag import answer_question
 import uuid
 
 router = APIRouter()
+templates = Jinja2Templates(directory="templates")
+
+class ChatRequest(BaseModel):
+    question: str
+    session_id: str
+
+@router.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    return templates.TemplateResponse(request=request, name="index.html")
 
 @router.post("/upload")
 async def upload_document(file: UploadFile = File(...)):
@@ -25,7 +36,6 @@ async def upload_document(file: UploadFile = File(...)):
 
     chunks = chunk_text(text)
     embeddings = embed_chunks(chunks)
-    print(f"chunks count: {len(chunks)}, embedding count: {len(embeddings)}")
     session_id = str(uuid.uuid4())
 
     conn = get_db()
@@ -34,7 +44,7 @@ async def upload_document(file: UploadFile = File(...)):
     try:
         cur.execute(
             "INSERT INTO documents (filename, session_id) VALUES (%s, %s) RETURNING id",
-            (file.filename, session_id),
+            (file.filename, session_id)
         )
         document_id = cur.fetchone()[0]
 
@@ -59,24 +69,18 @@ async def upload_document(file: UploadFile = File(...)):
         "chunks_created": len(chunks)
     }
 
-
-class ChatRequest(BaseModel):
-	question: str
-	session_id: str
-
-
 @router.post("/chat")
-async def chat(request: ChatRequest): 
-	if not request.question.strip():
-		raise HTTPException(status_code=400, detail="Question cannot be empty")
-	if not request.session_id:
-		raise HTTPExpection(status_code=400, detail="Session ID is required")
-	
-	answer = answer_question(request.question, request.session_id)
+async def chat(request: ChatRequest):
+    if not request.question.strip():
+        raise HTTPException(status_code=400, detail="Question cannot be empty")
 
+    if not request.session_id:
+        raise HTTPException(status_code=400, detail="Session ID is required")
 
-	return { 
-		"question": request.question,
-		"answer": answer,
-		"session_id": request.session_id
-	}  
+    answer = answer_question(request.question, request.session_id)
+
+    return {
+        "question": request.question,
+        "answer": answer,
+        "session_id": request.session_id
+    }

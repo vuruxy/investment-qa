@@ -13,7 +13,7 @@ client = OpenAI(
 
 def find_relevant_chunks(questions: str, session_id: str, limit: int = 3) -> list[str]:
     question_embedding = get_embedding(questions)
-    vector_str = "["+", ".join(str(x) for x in question_embedding) + "]"
+    vector_str = "["+",".join(str(x) for x in question_embedding) + "]"
     
     conn = get_db()
     cur = conn.cursor()

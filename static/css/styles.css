@@ -1,0 +1,134 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: sans-serif;
+    background: #0f0f0f;
+    color: #f0f0f0;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+header h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+header p {
+    color: #888;
+}
+
+.upload-section {
+    margin-bottom: 32px;
+}
+
+.upload-box {
+    border: 2px dashed #333;
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+}
+
+.upload-box p {
+    margin-bottom: 16px;
+    color: #888;
+}
+
+button {
+    padding: 10px 20px;
+    background: #2a2a6a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+button:hover {
+    background: #3a3a8a;
+}
+
+#upload-status {
+    margin-top: 12px;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.success {
+    background: #1a3a1a;
+    color: #4caf50;
+}
+
+.error {
+    background: #3a1a1a;
+    color: #f44336;
+}
+
+.chat-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+#chat-box {
+    min-height: 300px;
+    max-height: 500px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background: #1a1a1a;
+    border-radius: 12px;
+}
+
+.message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    max-width: 80%;
+    line-height: 1.6;
+}
+
+.user {
+    background: #2a2a4a;
+    align-self: flex-end;
+}
+
+.ai {
+    background: #1e2a1e;
+    align-self: flex-start;
+}
+
+.input-area {
+    display: flex;
+    gap: 12px;
+}
+
+#question-input {
+    flex: 1;
+    padding: 12px 16px;
+    background: #1e1e1e;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #f0f0f0;
+    font-size: 15px;
+    outline: none;
+}
+
+#question-input:focus {
+    border-color: #555;
+}
