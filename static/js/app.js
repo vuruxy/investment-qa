@@ -21,6 +21,7 @@ document.getElementById('file-input').addEventListener('change', async function(
 
         if (response.ok) {
             sessionId = data.session_id;
+	    console.log("session ID set:", sessionId);
             status.className = 'success';
             status.textContent = `✓ ${data.filename} uploaded — ${data.chunks_created} chunks created`;
             document.getElementById('chat-section').style.display = 'block';
