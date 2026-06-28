@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-dotenv
+psycopg2-binary
+pgvector
+openai
+pypdf2
+tiktoken
+python-multipart
+jinja2
+aiofiles
+pydantic
