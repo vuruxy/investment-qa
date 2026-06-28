@@ -1,4 +1,4 @@
-import os 
+import os
 from openai import OpenAI
 from app.models import get_db
 from app.services.embeddings import get_embedding
@@ -6,15 +6,16 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-client = OpenAI(
- api_key=os.getenv("OPENAI_API_KEY"),
- base_url="https://openrouter.ai/api/v1"
-)
+def get_client():
+    return OpenAI(
+        api_key=os.getenv("OPENAI_API_KEY"),
+        base_url="https://openrouter.ai/api/v1"
+    )
 
-def find_relevant_chunks(questions: str, session_id: str, limit: int = 3) -> list[str]:
-    question_embedding = get_embedding(questions)
-    vector_str = "["+",".join(str(x) for x in question_embedding) + "]"
-    
+def find_relevant_chunks(question: str, session_id: str, limit: int = 3) -> list[str]:
+    question_embedding = get_embedding(question)
+    vector_str = "[" + ",".join(str(x) for x in question_embedding) + "]"
+
     conn = get_db()
     cur = conn.cursor()
 
@@ -34,6 +35,7 @@ def find_relevant_chunks(questions: str, session_id: str, limit: int = 3) -> lis
     return [row[0] for row in rows]
 
 def answer_question(question: str, session_id: str) -> str:
+    client = get_client()
     relevant_chunks = find_relevant_chunks(question, session_id)
 
     if not relevant_chunks:
@@ -42,7 +44,6 @@ def answer_question(question: str, session_id: str) -> str:
     context = "\n\n".join(relevant_chunks)
 
     prompt = f"""You are an assistant that answers questions based only on the provided document context.
-
 If the answer is not in the context, say "I couldn't find relevant information in this document."
 
 Context:
@@ -53,9 +54,9 @@ Question: {question}
 Answer:"""
 
     response = client.chat.completions.create(
-    model="openai/gpt-4o",
-    max_tokens=1000,
-    messages=[{ "role": "user", "content": prompt}]
-)
+        model="openai/gpt-4o",
+        max_tokens=1000,
+        messages=[{"role": "user", "content": prompt}]
+    )
 
     return response.choices[0].message.content
