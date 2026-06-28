@@ -1,6 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.models import get_db
 from app.services.pdf_processor import extract_text_from_pdf, chunk_text
+from app.services.embeddings import embed_chunks
 import uuid
 
 router = APIRouter()
@@ -9,39 +10,47 @@ router = APIRouter()
 async def upload_document(file: UploadFile = File(...)):
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted")
-    
+
     file_bytes = await file.read()
-    
+
     if len(file_bytes) == 0:
         raise HTTPException(status_code=400, detail="Uploaded file is empty")
-    
+
     text = extract_text_from_pdf(file_bytes)
-    
+
     if not text.strip():
-        raise HTTPException(status_code=400, detail="Could not extract text from this PDF. It may be corrupted or image-based")
-    
+        raise HTTPException(status_code=400, detail="Could not extract text from this PDF")
+
     chunks = chunk_text(text)
+    embeddings = embed_chunks(chunks)
+    print(f"chunks count: {len(chunks)}, embedding count: {len(embeddings)}")
     session_id = str(uuid.uuid4())
-    
+
     conn = get_db()
     cur = conn.cursor()
-    
-    cur.execute(
-        "INSERT INTO documents (filename, session_id) VALUES (%s, %s) RETURNING id",
-        (file.filename, session_id)
-    )
-    document_id = cur.fetchone()[0]
-    
-    for i, chunk in enumerate(chunks):
+
+    try:
         cur.execute(
-            "INSERT INTO chunks (document_id, content, chunk_index) VALUES (%s, %s, %s)",
-            (document_id, chunk, i)
+            "INSERT INTO documents (filename, session_id) VALUES (%s, %s) RETURNING id",
+            (file.filename, session_id),
         )
-    
-    conn.commit()
-    cur.close()
-    conn.close()
-    
+        document_id = cur.fetchone()[0]
+
+        for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
+            vector_str = "[" + ",".join(str(x) for x in embedding) + "]"
+            cur.execute(
+                "INSERT INTO chunks (document_id, content, embedding, chunk_index) VALUES (%s, %s, %s::vector, %s)",
+                (document_id, chunk, vector_str, i)
+            )
+
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cur.close()
+        conn.close()
+
     return {
         "session_id": session_id,
         "filename": file.filename,
